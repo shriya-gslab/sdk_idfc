@@ -131,6 +131,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="SetPin" />
+
         <Button
             android:id="@+id/buttonChangepin"
             android:layout_width="wrap_content"
@@ -138,6 +139,34 @@
             android:layout_marginTop="10dp"
             android:text="Change pin" />
 
+        <EditText
+            android:id="@+id/editTextAccountNo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:inputType="number"
+            android:layout_marginRight="30dp"
+            android:hint="Last Account digit"
+            android:autofillHints="" />
+
+
+
+        <EditText
+            android:id="@+id/editTextpayeeAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="30dp"
+            android:hint="Payee Address"
+            android:autofillHints="" />
+        <EditText
+            android:id="@+id/editTextpayerAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="30dp"
+            android:hint="Payer Address"
+            android:autofillHints="" />
         <Button
             android:id="@+id/buttonPay"
             android:layout_width="wrap_content"
@@ -151,6 +180,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Check Balance" />
+        <TextView
+            android:id="@+id/textviewTxnID"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textIsSelectable="true" />
+        234234
         <TextView
             android:id="@+id/textviewSetPin"
             android:layout_width="wrap_content"

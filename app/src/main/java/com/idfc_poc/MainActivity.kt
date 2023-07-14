@@ -30,7 +30,8 @@ class MainActivity : AppCompatActivity() {
         const val TAG: String = "MainActivity"
     }
 
-    var buttonGetChallenge: TextView? = null
+    var buttonGetChallenge: Button? = null
+    var textviewTxnID: TextView? = null
     var editTextDeviceID: TextView? = null
     var textviewChallenege: TextView? = null
     var buttonSetPin: Button? = null
@@ -46,6 +47,9 @@ class MainActivity : AppCompatActivity() {
     var editTextOTPLength: EditText? = null
     var editTextMPinLength: EditText? = null
     var editTextATMPinLength: EditText? = null
+    var editTextAccountNo: EditText? = null
+    var editTextpayeeAddress: EditText? = null
+    var editTextpayerAddress: EditText? = null
 
     var textviewSetPin: TextView? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,6 +59,7 @@ class MainActivity : AppCompatActivity() {
 
         Log.e("token--- ", token.toString())
         textviewSetPin = findViewById<TextView>(R.id.textviewSetPin)
+        textviewTxnID = findViewById<TextView>(R.id.textviewTxnID)
 
         buttonGetChallenge = findViewById<Button>(R.id.buttonGetChallenge)
         editTextDeviceID = findViewById<EditText>(R.id.editTextDeviceID)
@@ -69,9 +74,12 @@ class MainActivity : AppCompatActivity() {
         editTextToken = findViewById<EditText>(R.id.editTextToken)
         editTextAppId = findViewById<EditText>(R.id.editTextAppId)
         editTextlistKey = findViewById<EditText>(R.id.editTextlistKey)
+        editTextAccountNo = findViewById<EditText>(R.id.editTextAccountNo)
         editTextOTPLength = findViewById<EditText>(R.id.editTextOTPLength)
         editTextMPinLength = findViewById<EditText>(R.id.editTextMPinLength)
         editTextATMPinLength = findViewById<EditText>(R.id.editTextATMPinLength)
+        editTextpayeeAddress = findViewById<EditText>(R.id.editTextpayeeAddress)
+        editTextpayerAddress = findViewById<EditText>(R.id.editTextpayerAddress)
         rawtoken = editTextToken!!.text.toString()
         token = getConvertedHexToken()!!
         buttonRegister!!.setOnClickListener {
@@ -154,6 +162,7 @@ class MainActivity : AppCompatActivity() {
         rawtoken = editTextToken!!.text.toString()
         token = getConvertedHexToken()!!
 
+        respListKeys =  editTextlistKey!!.text.toString().trim()
         if (token.isEmpty()) {
             Toast.makeText(this@MainActivity, "Enter Token", Toast.LENGTH_SHORT).show()
         } else if (eMobile.isEmpty()) {
@@ -174,6 +183,9 @@ class MainActivity : AppCompatActivity() {
             val udir = UUID.randomUUID().toString()
             val completeString = udir.replace("-", "")
 
+            textviewTxnID!!.text =""
+            textviewTxnID!!.text = "IDFAB"+completeString.dropLast(2).uppercase()
+
             var _credtype = ""
             var _flowType: FlowType? = null
 
@@ -181,42 +193,102 @@ class MainActivity : AppCompatActivity() {
                 "setpin" -> {
                     _credtype = CredType.SET_PIN
                     _flowType = FlowType.SET_PIN
+
+                    npciCommonlib.getCredential(
+                        CredKeyCode.NPCI,
+                        CLRequestParams(
+                            credType = arrayListOf(_credtype),
+                            flowType = _flowType,
+                            mPinLength = mpinlength,
+                            listKeysXmlPayload = respListKeys,
+                            txnID = listOf("IDFAB"+completeString.dropLast(2).uppercase()),
+                            deviceId = eDeviceId,
+                            appId = eAppID,
+                            mobileNo = eMobile,
+                            token = token,
+                            payerBankName = "Idfc",
+                            atmPinLength = atmpinlength,
+                            otpLength = otplength
+                        ),
+                        callbackUPIService
+                    )
                 }
                 "changepin" -> {
                     _credtype = CredType.CHANGE_PIN
                     _flowType = FlowType.CHANGE_PIN
+                    npciCommonlib.getCredential(
+                        CredKeyCode.NPCI,
+                        CLRequestParams(
+                            credType = arrayListOf(_credtype),
+                            flowType = _flowType,
+                            mPinLength = mpinlength,
+                            listKeysXmlPayload = respListKeys,
+                            txnID = listOf("IDFAB"+completeString.dropLast(2).uppercase()),
+                            deviceId = eDeviceId,
+                            appId = eAppID,
+                            mobileNo = eMobile,
+                            token = token,
+                            payerBankName = "Idfc"
+                        ),
+                        callbackUPIService
+                    )
                 }
                 "pay" -> {
+                  var account =   editTextAccountNo!!.text.toString().trim()
+                  var payeeAddress =   editTextpayeeAddress!!.text.toString().trim()
+                  var payerAddress =   editTextpayerAddress!!.text.toString().trim()
                     _credtype = CredType.PAY
                     _flowType = FlowType.PAY
+                    npciCommonlib.getCredential(
+                        CredKeyCode.NPCI,
+                        CLRequestParams(
+                            credType = arrayListOf(_credtype),
+                            flowType = _flowType,
+                            mPinLength = mpinlength,
+                            listKeysXmlPayload = respListKeys,
+                            txnID = listOf("IDFAB"+completeString.dropLast(2).uppercase()),
+                            txnAmt = "10.00",
+                            maskAccountNo = "XXXXX"+account,
+                            payeeAddress = payeeAddress,
+                            payeeName = "Ram",
+                            payerAddress = payerAddress,
+                            deviceId = eDeviceId,
+                            appId = eAppID,
+                            mobileNo = eMobile,
+                            token = token,
+                            payerBankName = "Idfc"
+                        ),
+                        callbackUPIService
+                    )
                 }
                 "checkbalance" -> {
                     _credtype = CredType.REQ_BAL_CHK
                     _flowType = FlowType.REQ_BAL_CHK
+                    var account =   editTextAccountNo!!.text.toString().trim()
+                    var payeeAddress =   editTextpayeeAddress!!.text.toString().trim()
+                    var payerAddress =   editTextpayerAddress!!.text.toString().trim()
+                    npciCommonlib.getCredential(
+                        CredKeyCode.NPCI,
+                        CLRequestParams(
+                            credType = arrayListOf(_credtype),
+                            flowType = _flowType,
+                            mPinLength = mpinlength,
+                            listKeysXmlPayload = respListKeys,
+                            txnID = listOf("IDFAB"+completeString.dropLast(2).uppercase()),
+                            maskAccountNo = "XXXXX"+account,
+                            payeeAddress = payeeAddress,
+                            payeeName = "Ram",
+                            payerAddress = payerAddress,
+                            deviceId = eDeviceId,
+                            appId = eAppID,
+                            mobileNo = eMobile,
+                            token = token,
+                            payerBankName = "Idfc"
+                        ),
+                        callbackUPIService
+                    )
                 }
             }
-            Log.e("_credtype- ",_credtype.toString())
-            Log.e("_flowType- ",_flowType.toString())
-            npciCommonlib.getCredential(
-                CredKeyCode.NPCI,
-                CLRequestParams(
-                    credType = arrayListOf(_credtype),
-                    flowType = _flowType!!,
-                    mPinLength = mpinlength,
-                    listKeysXmlPayload = respListKeys,
-                    txnID = listOf("IDFAB"+completeString.dropLast(2).uppercase()),
-                    deviceId = eDeviceId,
-                    appId = eAppID,
-                    mobileNo = eMobile,
-                    token = token,
-                    payerBankName = "Idfc",
-                    atmPinLength = atmpinlength,
-                    otpLength = otplength,
-//                        resendIssuerOTPFeature = "true",
-//                        aadhaarResendOTPLimit = 2,
-                ),
-                callbackUPIService
-            )
         }
     }
 
@@ -225,6 +297,8 @@ class MainActivity : AppCompatActivity() {
 
             override fun onSuccess(result: CLResponseParams) {
                 Log.e(TAG, "UpiServiceCallback: result: $result")
+
+
                 textviewSetPin!!.text = ""
                 textviewSetPin!!.text =
                     "deviceDetail: " + result.deviceDetail.toString() + "\n" +
