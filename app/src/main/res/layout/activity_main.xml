@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -17,7 +17,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="20dp"
-            android:text="IDFC v1.5"
+            android:text="IDFC v1.6"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:hint="Device ID"
-            android:text="" />
+            android:text="RZ8T31HY3X3106" />
 
         <Button
             android:id="@+id/buttonGetChallenge"
@@ -50,7 +50,7 @@
             android:layout_marginTop="20dp"
             android:ems="10"
             android:hint="App Id"
-            android:text="com.abcupi" />
+            android:text="com.sarvatra.abc" />
 
         <EditText
             android:id="@+id/editTextToken"
@@ -68,14 +68,30 @@
             android:layout_marginTop="20dp"
             android:ems="10"
             android:inputType="number"
+            android:text="9960917772"
             android:hint="Mobile No" />
 
-        <Button
-            android:id="@+id/buttonRegister"
-            android:layout_width="wrap_content"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Register" />
+            android:orientation="horizontal"
+            >
+            <Button
+                android:id="@+id/buttonRegister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Register" />
+            <Button
+                android:id="@+id/buttonListKey"
+                android:layout_marginLeft="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Generate List Key" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
 
         <TextView
             android:id="@+id/textviewRegistrationStatus"
@@ -116,14 +132,6 @@
                 android:hint="ATM length"
                 android:autofillHints="" />
         </LinearLayout>
-
-        <EditText
-            android:id="@+id/editTextlistKey"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:hint="List key" />
-
 
         <Button
             android:id="@+id/buttonSetPin"
@@ -195,4 +203,4 @@
             android:textIsSelectable="true" />
 
     </LinearLayout>
-</android.support.v4.widget.NestedScrollView>
+</androidx.core.widget.NestedScrollView>

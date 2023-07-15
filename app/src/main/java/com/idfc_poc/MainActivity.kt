@@ -1,22 +1,24 @@
 package com.idfc_poc
 
+import android.content.SharedPreferences
 import android.os.Bundle
-import android.provider.Settings
-import android.support.v7.app.AppCompatActivity
 import android.util.Base64
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.montran.cli.NPCICommonLib
 import com.montran.cli.data.*
 import com.montran.cli.exceptions.Failure
 import com.montran.cli.services.UpiServiceCallback
 import com.montran.cli.services.UpiServiceStatus
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.npci.upi.security.services.CLServices
-import org.npci.upi.security.services.ServiceConnectionStatusNotifier
 import java.util.*
+
 
 class MainActivity : AppCompatActivity() {
     private var npciCommonlib: NPCICommonLib = NPCICommonLib()
@@ -38,24 +40,26 @@ class MainActivity : AppCompatActivity() {
     var buttonChangepin: Button? = null
     var buttonPay: Button? = null
     var buttonCheckBalance: Button? = null
+    var buttonListKey: Button? = null
     var buttonRegister: TextView? = null
     var textviewRegistrationStatus: TextView? = null
     var editTextMobile: EditText? = null
     var editTextToken: EditText? = null
     var editTextAppId: EditText? = null
-    var editTextlistKey: EditText? = null
     var editTextOTPLength: EditText? = null
     var editTextMPinLength: EditText? = null
     var editTextATMPinLength: EditText? = null
     var editTextAccountNo: EditText? = null
     var editTextpayeeAddress: EditText? = null
     var editTextpayerAddress: EditText? = null
-
+    var mPrefs: SharedPreferences? = null
     var textviewSetPin: TextView? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initializeIDFC()
+
+        mPrefs = getPreferences(MODE_PRIVATE)
 
         Log.e("token--- ", token.toString())
         textviewSetPin = findViewById<TextView>(R.id.textviewSetPin)
@@ -68,12 +72,12 @@ class MainActivity : AppCompatActivity() {
         buttonChangepin = findViewById<Button>(R.id.buttonChangepin)
         buttonPay = findViewById<Button>(R.id.buttonPay)
         buttonCheckBalance = findViewById<Button>(R.id.buttonCheckBalance)
+        buttonListKey = findViewById<Button>(R.id.buttonListKey)
         buttonRegister = findViewById<Button>(R.id.buttonRegister)
         textviewRegistrationStatus = findViewById<TextView>(R.id.textviewRegistrationStatus)
         editTextMobile = findViewById<EditText>(R.id.editTextMobile)
         editTextToken = findViewById<EditText>(R.id.editTextToken)
         editTextAppId = findViewById<EditText>(R.id.editTextAppId)
-        editTextlistKey = findViewById<EditText>(R.id.editTextlistKey)
         editTextAccountNo = findViewById<EditText>(R.id.editTextAccountNo)
         editTextOTPLength = findViewById<EditText>(R.id.editTextOTPLength)
         editTextMPinLength = findViewById<EditText>(R.id.editTextMPinLength)
@@ -82,6 +86,7 @@ class MainActivity : AppCompatActivity() {
         editTextpayerAddress = findViewById<EditText>(R.id.editTextpayerAddress)
         rawtoken = editTextToken!!.text.toString()
         token = getConvertedHexToken()!!
+
         buttonRegister!!.setOnClickListener {
             var eToken = editTextToken!!.text.toString()
             var eMobile = editTextMobile!!.text.toString()
@@ -94,6 +99,8 @@ class MainActivity : AppCompatActivity() {
             } else if (eAppID.isEmpty()) {
                 Toast.makeText(this@MainActivity, "Enter Ap ID", Toast.LENGTH_SHORT).show()
             } else {
+
+
                 rawtoken = editTextToken!!.text.toString()
                 token = getConvertedHexToken()!!
                 if (token.isNotEmpty()) {
@@ -110,6 +117,7 @@ class MainActivity : AppCompatActivity() {
                                     textviewRegistrationStatus!!.text = ""
                                     textviewRegistrationStatus!!.text = "Regitration response success: $result"
                                 }
+
                                 override fun onError(status: UpiServiceStatus, errors: Failure) {
                                     Log.e(TAG, "registerIDFC: status name:-- " + status.name)
                                     Log.e(TAG, "registerIDFC: status: original-- " + status.ordinal)
@@ -146,23 +154,53 @@ class MainActivity : AppCompatActivity() {
         buttonCheckBalance!!.setOnClickListener {
             getCredentails("checkbalance")
         }
+        buttonListKey!!.setOnClickListener {
+//            MyObject myObject = new MyObject;
+////set variables of 'myObject', etc.
 
+//            Editor prefsEditor = mPrefs.edit();
+//            Gson gson = new Gson();
+//            String json = gson.toJson(myObject);
+//            prefsEditor.putString("MyObject", json);
+//            prefsEditor.commit();
 
+            GlobalScope.launch {
+                var appid = editTextAppId!!.text.toString().trim()
+                var mobile = editTextMobile!!.text.toString().trim()
+                var device = editTextDeviceID!!.text.toString().trim()
+
+                if (mobile.isEmpty()) {
+                    this@MainActivity.runOnUiThread(Runnable {
+                        Toast.makeText(this@MainActivity, "Enter Mobile No", Toast.LENGTH_SHORT).show()
+                    })
+                } else if (appid.isEmpty()) {
+                    this@MainActivity.runOnUiThread(Runnable {
+                        Toast.makeText(this@MainActivity, "Enter App ID", Toast.LENGTH_SHORT).show()
+                    })
+                } else if (device.isEmpty()) {
+                    this@MainActivity.runOnUiThread(Runnable {
+                        Toast.makeText(this@MainActivity, "Enter device id", Toast.LENGTH_SHORT).show()
+                    })
+                } else {
+                    listKeyAPiCall()
+                }
+            }
+        }
     }
 
-    fun getCredentails(credType :String){
-
+    fun getCredentails(credType: String) {
         var eMobile = editTextMobile!!.text.toString()
         var eAppID = editTextAppId!!.text.toString()
         var eDeviceId = editTextDeviceID!!.text.toString()
-        var respListKeys = editTextlistKey!!.text.toString()
         var mpinlength = editTextMPinLength!!.text.toString()
         var otplength = editTextOTPLength!!.text.toString()
         var atmpinlength = editTextATMPinLength!!.text.toString()
         rawtoken = editTextToken!!.text.toString()
         token = getConvertedHexToken()!!
 
-        respListKeys =  editTextlistKey!!.text.toString().trim()
+
+        val respListKeys = mPrefs!!.getString("listkey", "")
+        Log.e("listkey-- ", respListKeys.toString())
         if (token.isEmpty()) {
             Toast.makeText(this@MainActivity, "Enter Token", Toast.LENGTH_SHORT).show()
         } else if (eMobile.isEmpty()) {
@@ -171,7 +209,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this@MainActivity, "Enter App ID", Toast.LENGTH_SHORT).show()
         } else if (eDeviceId.isEmpty()) {
             Toast.makeText(this@MainActivity, "Enter deviceid", Toast.LENGTH_SHORT).show()
-        } else if (respListKeys.isEmpty()) {
+        } else if (respListKeys!!.isEmpty()) {
             Toast.makeText(this@MainActivity, "Enter listkey", Toast.LENGTH_SHORT).show()
         } else if (mpinlength.isEmpty()) {
             Toast.makeText(this@MainActivity, "Enter MPIN length", Toast.LENGTH_SHORT).show()
@@ -183,8 +221,8 @@ class MainActivity : AppCompatActivity() {
             val udir = UUID.randomUUID().toString()
             val completeString = udir.replace("-", "")
 
-            textviewTxnID!!.text =""
-            textviewTxnID!!.text = "IDFAB"+completeString.dropLast(2).uppercase()
+            textviewTxnID!!.text = ""
+            textviewTxnID!!.text = "IDFAB" + completeString.dropLast(2).uppercase()
 
             var _credtype = ""
             var _flowType: FlowType? = null
@@ -201,7 +239,7 @@ class MainActivity : AppCompatActivity() {
                             flowType = _flowType,
                             mPinLength = mpinlength,
                             listKeysXmlPayload = respListKeys,
-                            txnID = listOf("IDFAB"+completeString.dropLast(2).uppercase()),
+                            txnID = listOf("IDFAB" + completeString.dropLast(2).uppercase()),
                             deviceId = eDeviceId,
                             appId = eAppID,
                             mobileNo = eMobile,
@@ -223,7 +261,7 @@ class MainActivity : AppCompatActivity() {
                             flowType = _flowType,
                             mPinLength = mpinlength,
                             listKeysXmlPayload = respListKeys,
-                            txnID = listOf("IDFAB"+completeString.dropLast(2).uppercase()),
+                            txnID = listOf("IDFAB" + completeString.dropLast(2).uppercase()),
                             deviceId = eDeviceId,
                             appId = eAppID,
                             mobileNo = eMobile,
@@ -234,9 +272,9 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
                 "pay" -> {
-                  var account =   editTextAccountNo!!.text.toString().trim()
-                  var payeeAddress =   editTextpayeeAddress!!.text.toString().trim()
-                  var payerAddress =   editTextpayerAddress!!.text.toString().trim()
+                    var account = editTextAccountNo!!.text.toString().trim()
+                    var payeeAddress = editTextpayeeAddress!!.text.toString().trim()
+                    var payerAddress = editTextpayerAddress!!.text.toString().trim()
                     _credtype = CredType.PAY
                     _flowType = FlowType.PAY
                     npciCommonlib.getCredential(
@@ -246,9 +284,9 @@ class MainActivity : AppCompatActivity() {
                             flowType = _flowType,
                             mPinLength = mpinlength,
                             listKeysXmlPayload = respListKeys,
-                            txnID = listOf("IDFAB"+completeString.dropLast(2).uppercase()),
+                            txnID = listOf("IDFAB" + completeString.dropLast(2).uppercase()),
                             txnAmt = "10.00",
-                            maskAccountNo = "XXXXX"+account,
+                            maskAccountNo = "XXXXX" + account,
                             payeeAddress = payeeAddress,
                             payeeName = "Ram",
                             payerAddress = payerAddress,
@@ -264,9 +302,9 @@ class MainActivity : AppCompatActivity() {
                 "checkbalance" -> {
                     _credtype = CredType.REQ_BAL_CHK
                     _flowType = FlowType.REQ_BAL_CHK
-                    var account =   editTextAccountNo!!.text.toString().trim()
-                    var payeeAddress =   editTextpayeeAddress!!.text.toString().trim()
-                    var payerAddress =   editTextpayerAddress!!.text.toString().trim()
+                    var account = editTextAccountNo!!.text.toString().trim()
+                    var payeeAddress = editTextpayeeAddress!!.text.toString().trim()
+                    var payerAddress = editTextpayerAddress!!.text.toString().trim()
                     npciCommonlib.getCredential(
                         CredKeyCode.NPCI,
                         CLRequestParams(
@@ -274,8 +312,8 @@ class MainActivity : AppCompatActivity() {
                             flowType = _flowType,
                             mPinLength = mpinlength,
                             listKeysXmlPayload = respListKeys,
-                            txnID = listOf("IDFAB"+completeString.dropLast(2).uppercase()),
-                            maskAccountNo = "XXXXX"+account,
+                            txnID = listOf("IDFAB" + completeString.dropLast(2).uppercase()),
+                            maskAccountNo = "XXXXX" + account,
                             payeeAddress = payeeAddress,
                             payeeName = "Ram",
                             payerAddress = payerAddress,
@@ -358,9 +396,7 @@ class MainActivity : AppCompatActivity() {
                     if (editTextDeviceID!!.text.isEmpty()) {
                         Toast.makeText(this@MainActivity, "Enter device ID", Toast.LENGTH_SHORT).show()
                     } else {
-
                         device_id = editTextDeviceID!!.text.toString()
-
                         try {
                             print("device_id-- $device_id")
                             var request_challenge = npciCommonlib.getChallenge("initial", device_id)
@@ -376,4 +412,46 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+
+    suspend fun listKeyAPiCall() {
+        var listKeyReq: ListKeyRequest? = null
+        var appid = editTextAppId!!.text.toString().trim()
+        var mobile = editTextMobile!!.text.toString().trim()
+        var device = editTextDeviceID!!.text.toString().trim()
+        listKeyReq = ListKeyRequest(
+            device = Device(
+                app_id = appid,
+                device_id = device,
+                os = "ANDROID",
+                os_version = "11",
+                manufacture = "NOKIA",
+                model = "123",
+                version = "1.0",
+                location = "1234567890",
+                fcm_token = "token",
+                sim_slot = "120000012202"
+            ),
+            user = User(abc_profile_id = 31, mobile = mobile),
+            payload = Payload(psp = "IDFC"),
+            seq_no = UUID.randomUUID().toString()
+        )
+
+        if (listKeyReq != null) {
+            val response = ApiService.getInstance().listKeyAPI(listKeyReq)
+            Log.e("${MainActivity.TAG}  response", response.toString())
+            if (response != null) {
+                if (response.isSuccessful) {
+                    val resBody = response.body()
+                    Log.e("${MainActivity.TAG}  response----   ", resBody!!.data!!.keys.toString())
+
+                    val prefsEditor: SharedPreferences.Editor = mPrefs!!.edit()
+                    prefsEditor.putString("listkey", resBody.data!!.keys.toString())
+                    prefsEditor.commit()
+
+                } else {
+                    Log.e("${MainActivity.TAG} -- ", "")
+                }
+            }
+        }
+    }
 }
