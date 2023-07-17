@@ -2,6 +2,7 @@ package com.idfc_poc
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Base64
 import android.util.Log
 import android.widget.Button
@@ -87,6 +88,9 @@ class MainActivity : AppCompatActivity() {
         rawtoken = editTextToken!!.text.toString()
         token = getConvertedHexToken()!!
 
+        var android_device_id = Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID).uppercase()
+        editTextDeviceID!!.text = android_device_id
+
         buttonRegister!!.setOnClickListener {
             var eToken = editTextToken!!.text.toString()
             var eMobile = editTextMobile!!.text.toString()
@@ -155,14 +159,6 @@ class MainActivity : AppCompatActivity() {
             getCredentails("checkbalance")
         }
         buttonListKey!!.setOnClickListener {
-//            MyObject myObject = new MyObject;
-////set variables of 'myObject', etc.
-
-//            Editor prefsEditor = mPrefs.edit();
-//            Gson gson = new Gson();
-//            String json = gson.toJson(myObject);
-//            prefsEditor.putString("MyObject", json);
-//            prefsEditor.commit();
 
             GlobalScope.launch {
                 var appid = editTextAppId!!.text.toString().trim()

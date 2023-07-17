@@ -17,7 +17,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="20dp"
-            android:text="IDFC v1.6"
+            android:text="IDFC v1.8"
             android:textSize="20sp"
             android:textStyle="bold" />
 
